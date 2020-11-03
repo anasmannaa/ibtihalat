@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context=".MainActivity">
+
+    <TextView
+        android:id="@+id/sh_tobar"
+        style="@style/category_style"
+        android:background="@color/tobar"
+        android:text="@string/tobar" />
+
+    <TextView
+        android:id="@+id/sh_fashni"
+        style="@style/category_style"
+        android:background="@color/fashni"
+        android:text="@string/fashni" />
+
+    <TextView
+        android:id="@+id/sh_bahtimi"
+        style="@style/category_style"
+        android:background="@color/bahtimi"
+        android:text="@string/bahtimi" />
+
+    <TextView
+        android:id="@+id/sh_imran"
+        style="@style/category_style"
+        android:background="@color/imran"
+        android:text="@string/imran" />
+
+    <TextView
+        android:id="@+id/sh_tokhi"
+        style="@style/category_style"
+        android:background="@color/tokhi"
+        android:text="@string/tokhi" />
+
+    <TextView
+        android:id="@+id/sh_nakshbandi"
+        style="@style/category_style"
+        android:background="@color/nakshbandi"
+        android:text="@string/nakshbandi" />
+
+    <TextView
+        android:id="@+id/sh_old"
+        style="@style/category_style"
+        android:background="@color/old"
+        android:text="@string/old" />
+
+</LinearLayout>
