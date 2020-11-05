@@ -2,11 +2,12 @@ package com.anasmana.ibtihalat;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.annotation.TargetApi;
 import android.content.Context;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
+import android.os.Build;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ImageView;
@@ -21,6 +22,7 @@ public class TobarActivity extends AppCompatActivity {
     private int mAudioFileNumber;
     private boolean mStopped = false;
     private int mLength = 0;
+    private ImageView listItemPlayerImage;
 
     private MediaPlayer.OnCompletionListener mCompleteListener = new MediaPlayer.OnCompletionListener() {
         @Override
@@ -47,6 +49,7 @@ public class TobarActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        forceRTLIfSupported();
         setContentView(R.layout.word_list);
 
         mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
@@ -70,40 +73,29 @@ public class TobarActivity extends AppCompatActivity {
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                ImageView listItemPlayerImage = (ImageView) view.findViewById(R.id.playerImage);
 
-                if(mMediaPlayer != null && mAudioFileNumber == i){
-                    if(mStopped) {
-                        mMediaPlayer.seekTo(mLength);
-                        mMediaPlayer.start();
-                        mStopped = false;
-                        listItemPlayerImage.setImageResource(R.mipmap.ic_stop);
-                        return;
+                if (mMediaPlayer != null) {
+                    if (mAudioFileNumber == i) {
+                        if (mStopped) {
+                            mMediaPlayer.seekTo(mLength);
+                            mMediaPlayer.start();
+                            mStopped = false;
+                            listItemPlayerImage.setImageResource(R.mipmap.ic_stop);
+                            return;
+                        } else {
+                            mMediaPlayer.pause();
+                            mLength = mMediaPlayer.getCurrentPosition();
+                            mStopped = true;
+                            listItemPlayerImage.setImageResource(R.mipmap.ic_player);
+                            return;
+                        }
                     } else {
-                        mMediaPlayer.pause();
-                        mLength=mMediaPlayer.getCurrentPosition();
-                        mStopped = true;
                         listItemPlayerImage.setImageResource(R.mipmap.ic_player);
-                        return;
+                        playAudio(words.get(i), view, i);
+
                     }
-                } else {
-                    mAudioFileNumber = i;
                 }
-
-                releaseMediaPlayer();
-                mAudioFileNumber = i;
-                Word word = words.get(i);
-
-                int result = mAudioManager.requestAudioFocus(mOnAudioFocusChangeListener,
-                        AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN_TRANSIENT);
-
-                if (result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
-
-                    mMediaPlayer = MediaPlayer.create(TobarActivity.this, word.getmAudioResourceId());
-                    mMediaPlayer.start();
-                    listItemPlayerImage.setImageResource(R.mipmap.ic_stop);
-                    mMediaPlayer.setOnCompletionListener(mCompleteListener);
-                }
+                playAudio(words.get(i), view, i);
             }
         });
     }
@@ -112,28 +104,46 @@ public class TobarActivity extends AppCompatActivity {
     protected void onStop() {
         super.onStop();
         mMediaPlayer.pause();
-        mLength=mMediaPlayer.getCurrentPosition();
+        mLength = mMediaPlayer.getCurrentPosition();
     }
 
     @Override
     protected void onRestart() {
         super.onRestart();
-        if(!mStopped) {
+        if (!mStopped) {
             mMediaPlayer.seekTo(mLength);
             mMediaPlayer.start();
         }
     }
 
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        releaseMediaPlayer();
-    }
 
     private void releaseMediaPlayer() {
         if (mMediaPlayer != null) {
             mMediaPlayer.release();
-            mMediaPlayer = null;
+        }
+    }
+
+    private void playAudio(Word word, View view, int i) {
+        releaseMediaPlayer();
+        mAudioFileNumber = i;
+        listItemPlayerImage = (ImageView) view.findViewById(R.id.playerImage);
+        listItemPlayerImage.setImageResource(R.mipmap.ic_stop);
+        int result = mAudioManager.requestAudioFocus(mOnAudioFocusChangeListener,
+                AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN_TRANSIENT);
+        if (result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
+
+            mMediaPlayer = MediaPlayer.create(TobarActivity.this, word.getmAudioResourceId());
+            mMediaPlayer.start();
+            listItemPlayerImage.setImageResource(R.mipmap.ic_stop);
+            mMediaPlayer.setOnCompletionListener(mCompleteListener);
+        }
+    }
+
+    @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
+    private void forceRTLIfSupported()
+    {
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1){
+            getWindow().getDecorView().setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
         }
     }
 }
