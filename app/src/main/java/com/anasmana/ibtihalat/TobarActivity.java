@@ -1,17 +1,24 @@
 package com.anasmana.ibtihalat;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.annotation.TargetApi;
 import android.content.Context;
+import android.content.Intent;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.Build;
 import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 
@@ -51,6 +58,9 @@ public class TobarActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         forceRTLIfSupported();
         setContentView(R.layout.word_list);
+
+        ActionBar actionBar = getSupportActionBar();
+        actionBar.setDisplayHomeAsUpEnabled(true);
 
         mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
 
@@ -101,26 +111,27 @@ public class TobarActivity extends AppCompatActivity {
     }
 
     @Override
+    protected void onPause() {
+        super.onPause();
+        onGoAway();
+    }
+
+    @Override
     protected void onStop() {
         super.onStop();
-        mMediaPlayer.pause();
-        mLength = mMediaPlayer.getCurrentPosition();
+        onGoAway();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        onReturnBack();
     }
 
     @Override
     protected void onRestart() {
         super.onRestart();
-        if (!mStopped) {
-            mMediaPlayer.seekTo(mLength);
-            mMediaPlayer.start();
-        }
-    }
-
-
-    private void releaseMediaPlayer() {
-        if (mMediaPlayer != null) {
-            mMediaPlayer.release();
-        }
+        onReturnBack();
     }
 
     private void playAudio(Word word, View view, int i) {
@@ -139,11 +150,44 @@ public class TobarActivity extends AppCompatActivity {
         }
     }
 
+    private void releaseMediaPlayer() {
+        if (mMediaPlayer != null) {
+            mMediaPlayer.release();
+            mMediaPlayer = null;
+            mAudioManager.abandonAudioFocus(mOnAudioFocusChangeListener);
+        }
+    }
+
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
     private void forceRTLIfSupported()
     {
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1){
             getWindow().getDecorView().setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
+        }
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        startActivity(new Intent(TobarActivity.this,MainActivity.class));
+        return super.onOptionsItemSelected(item);
+    }
+
+    private void onGoAway() {
+        if(mMediaPlayer != null) {
+            if (!mStopped) {
+                mMediaPlayer.pause();
+            }
+            mLength = mMediaPlayer.getCurrentPosition();
+        }
+    }
+
+    private void onReturnBack() {
+        if(mMediaPlayer != null) {
+            if (!mStopped) {
+                mMediaPlayer.seekTo(mLength);
+                mMediaPlayer.start();
+            }
+            mLength = mMediaPlayer.getCurrentPosition();
         }
     }
 }
